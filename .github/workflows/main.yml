@@ -1,0 +1,28 @@
+name: build-libil
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descomprimir isaaclua.zip
+        run: unzip -q isaaclua.zip
+      - name: Pruebas en PC
+        working-directory: isaaclua
+        run: sh tools/build_host.sh
+      - name: Compilar libil.so para arm64
+        working-directory: isaaclua
+        run: |
+          export ANDROID_NDK_HOME="${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_HOME}"
+          sh tools/build_android.sh
+      - name: Comprobar el resultado
+        working-directory: isaaclua
+        run: |
+          file libil.so
+          file libil.so | grep -q "ARM aarch64"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libil
+          path: isaaclua/libil.so
